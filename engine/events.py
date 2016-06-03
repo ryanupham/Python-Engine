@@ -98,36 +98,36 @@ class Event:
 
 
 class CreateEvent(Event):
-    def __init__(self, this, priority):
+    def __init__(self, entity, priority):
         super(CreateEvent, self).__init__(priority)
-        self.this = this
+        self.entity = entity
 
 
 class DestroyEvent(Event):
-    def __init__(self, this, priority):
+    def __init__(self, entity, priority):
         super(DestroyEvent, self).__init__(priority)
-        self.this = this
+        self.entity = entity
 
 
 class CollisionEvent(Event):
-    def __init__(self, this, other, priority):
+    def __init__(self, entity, other, priority):
         super(CollisionEvent, self).__init__(priority)
-        self.this, self.other = this, other
+        self.entity, self.other = entity, other
 
 
 class StepEvent(Event):
-    def __init__(self, this, priority):
+    def __init__(self, entity, priority):
         super(StepEvent, self).__init__(priority)
-        self.this = this
+        self.entity = entity
 
 
 class DrawEvent(Event):
-    def __init__(self, this, priority):
+    def __init__(self, entity, priority):
         super(DrawEvent, self).__init__(priority)
-        self.this = this
+        self.entity = entity
 
 
 class InputEvent(Event):
-    def __init__(self, this, data, priority):
+    def __init__(self, entity, input_type, data, priority):
         super(InputEvent, self).__init__(priority)
-        self.this, self.data = this, data
+        self.entity, self.input_type, self.data = entity, input_type, data

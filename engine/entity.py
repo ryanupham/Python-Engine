@@ -56,7 +56,7 @@ class EntityModel:
         else:
             self.input_script[input_type][match] = fn
 
-    def inherit(self, child):
+    def inherit(self, child, propagate=True):
         child.variables = dict(self.variables, **child.variables)
         child.collision_script = dict(self.collision_script, **child.collision_script)
         child.create_script = child.create_script if child.create_script is not None else self.create_script
@@ -69,6 +69,10 @@ class EntityModel:
             else:
                 child.input_script[in_type] = child.input_script[in_type] if child.input_script[in_type] is not None \
                     else self.input_script[in_type]
+
+        if propagate:
+            for parent in self.parents:
+                parent.inherit(child)
 
 
 class Entity:
