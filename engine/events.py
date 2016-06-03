@@ -1,11 +1,18 @@
 import engine.time as time
 
 
-class EventType:
+class MetaEnum(type):
+    def __iter__(self):
+        for attr in dir(InputType):
+            if not attr.startswith("_"):
+                yield getattr(self, attr)
+
+
+class EventType(metaclass=MetaEnum):
     CREATE, DESTROY, COLLISION, STEP, DRAW, INPUT = range(6)
 
 
-class InputType:
+class InputType(metaclass=MetaEnum):
     KEY_DOWN, KEY_UP, MOUSE_DOWN, MOUSE_UP, MOUSE_MOVE = range(5)
 
 
