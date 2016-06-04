@@ -96,7 +96,7 @@ class Entity:
 
     def draw(self):
         if self.visible and self.sprite is not None:
-            pass
+            pass  # TODO: draw self
 
     def move(self):
         self.position.step()

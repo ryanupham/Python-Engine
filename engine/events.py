@@ -75,7 +75,7 @@ class EventManager:
     @classmethod
     def handle_next(cls):
         if not cls.__queue.empty():
-            pass
+            pass  # TODO: handle next event
 
     @classmethod
     def handle_all(cls):
