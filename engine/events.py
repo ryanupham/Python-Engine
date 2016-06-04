@@ -98,9 +98,9 @@ class Event:
 
 
 class CreateEvent(Event):
-    def __init__(self, entity, priority):
+    def __init__(self, entity, position, priority):
         super(CreateEvent, self).__init__(priority)
-        self.entity = entity
+        self.entity, self.position = entity, position
 
 
 class DestroyEvent(Event):

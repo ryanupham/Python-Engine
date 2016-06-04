@@ -1,11 +1,24 @@
+from engine.game import Game
+from engine.spatial import Position
+
+
 def create_event_handler(event):
+    if event.position is None:
+        event.position = Position()
+
+    event.entity.position = event.position
+
     if event.entity.create_script is not None:
         event.entity.create_script()
+
+    Game.add_entity(event.entity)
 
 
 def destroy_event_handler(event):
     if event.entity.destroy_script is not None:
         event.entity.destroy_script()
+
+    Game.remove_entity(event.entity)
 
 
 def collision_event_handler(event):

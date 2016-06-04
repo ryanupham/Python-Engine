@@ -1,5 +1,6 @@
 import engine.spatial as spatial
 from engine.events import InputType
+from engine.spatial import Position
 
 
 class GUID:
@@ -56,7 +57,7 @@ class EntityModel:
         else:
             self.input_script[input_type][match] = fn
 
-    def inherit(self, child, propagate=True):
+    def inherit(self, child):
         child.variables = dict(self.variables, **child.variables)
         child.collision_script = dict(self.collision_script, **child.collision_script)
         child.create_script = child.create_script if child.create_script is not None else self.create_script
@@ -70,16 +71,22 @@ class EntityModel:
                 child.input_script[in_type] = child.input_script[in_type] if child.input_script[in_type] is not None \
                     else self.input_script[in_type]
 
-        if propagate:
-            for parent in self.parents:
-                parent.inherit(child)
+    def destroy(self):
+        pass
 
 
 class Entity:
-    def __init__(self, name=None, position=spatial.Position(), solid=False, sprite=None, visible=True):
+    def __init__(self, model=None, name=None, position=None, solid=False, sprite=None, visible=True):
         self.guid = GUID()
 
-        self.name, self.position, self.solid, self.sprite, self.visible = name, position, solid, sprite, visible
+        if position is None:
+            position = Position()
+
+        if model is not None:
+            self.name, self.position, self.solid, self.sprite, self.visible = model.name, position, model.solid, \
+                model.sprite, model.visible
+        else:
+            self.name, self.position, self.solid, self.sprite, self.visible = name, position, solid, sprite, visible
 
     def __eq__(self, other):
         return self.guid == other.guid
