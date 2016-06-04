@@ -9,7 +9,7 @@ class MetaEnum(type):
 
 
 class EventType(metaclass=MetaEnum):
-    CREATE, DESTROY, COLLISION, STEP, DRAW, INPUT = range(6)
+    GAME_START, CREATE, DESTROY, COLLISION, STEP, DRAW, INPUT = range(7)
 
 
 class InputType(metaclass=MetaEnum):
@@ -21,8 +21,8 @@ class MouseButton:
 
 
 class Priority:
-    def __init__(self, type, anchor=time.GlobalTimeline, delay=0):
-        self.type, self.anchor, self.delay = type, anchor, delay
+    def __init__(self, event_type=-1, anchor=time.GlobalTimeline, delay=0):
+        self.type, self.anchor, self.delay = event_type, anchor, delay
         self.alarm = anchor.elapsed_time() + delay
 
     def __lt__(self, other):
@@ -55,7 +55,7 @@ class EventQueue:
         self._events.sort()
         return not self._events[0].ready()
 
-    def get(self):
+    def next(self):
         if self.empty():
             return None
 
@@ -67,20 +67,42 @@ class EventQueue:
 
 class EventManager:
     __queue = EventQueue()
+    __handlers = {}
+    __drawing = False
+
+    @classmethod
+    def register_handler(cls, event_type, handler):
+        cls.__handlers[event_type] = handler
 
     @classmethod
     def raise_event(cls, event):
-        cls.__queue.put(event)
+        if not cls.__drawing:
+            cls.__queue.put(event)
+
+    @classmethod
+    def begin_draw(cls):
+        cls.__drawing = True
+
+    @classmethod
+    def end_draw(cls):
+        cls.__drawing = False
 
     @classmethod
     def handle_next(cls):
         if not cls.__queue.empty():
-            pass  # TODO: handle next event
+            event = cls.__queue.next()
+
+            if type(event) in cls.__handlers:
+                cls.__handlers[type(event)](event)
 
     @classmethod
     def handle_all(cls):
         while not cls.__queue.empty():
             cls.handle_next()
+
+    @classmethod
+    def empty(cls):
+        return cls.__queue.empty()
 
 
 class Event:
@@ -97,37 +119,49 @@ class Event:
         return self.priority.ready()
 
 
+class GameStartEvent(Event):
+    def __init__(self, priority=Priority()):
+        priority.type = EventType.GAME_START
+        super(GameStartEvent, self).__init__(priority)
+
+
 class CreateEvent(Event):
-    def __init__(self, entity, position, priority):
+    def __init__(self, entity, position, priority=Priority()):
+        priority.type = EventType.CREATE
         super(CreateEvent, self).__init__(priority)
         self.entity, self.position = entity, position
 
 
 class DestroyEvent(Event):
-    def __init__(self, entity, priority):
+    def __init__(self, entity, priority=Priority()):
+        priority.type = EventType.DESTROY
         super(DestroyEvent, self).__init__(priority)
         self.entity = entity
 
 
 class CollisionEvent(Event):
-    def __init__(self, entity, other, priority):
+    def __init__(self, entity, other, priority=Priority()):
+        priority.type = EventType.COLLISION
         super(CollisionEvent, self).__init__(priority)
         self.entity, self.other = entity, other
 
 
 class StepEvent(Event):
-    def __init__(self, entity, priority):
+    def __init__(self, entity, priority=Priority()):
+        priority.type = EventType.STEP
         super(StepEvent, self).__init__(priority)
         self.entity = entity
 
 
 class DrawEvent(Event):
-    def __init__(self, entity, priority):
+    def __init__(self, entity, priority=Priority()):
+        priority.type = EventType.DRAW
         super(DrawEvent, self).__init__(priority)
         self.entity = entity
 
 
 class InputEvent(Event):
-    def __init__(self, entity, input_type, data, priority):
+    def __init__(self, entity, input_type, data, priority=Priority()):
+        priority.type = EventType.INPUT
         super(InputEvent, self).__init__(priority)
         self.entity, self.input_type, self.data = entity, input_type, data
