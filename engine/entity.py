@@ -113,6 +113,22 @@ class Entity:
     def destroy(self) -> None:
         engine.events.EventManager.raise_event(engine.events.DestroyEvent(self))
 
+    @property
+    def width(self):
+        return self.sprite.width if self.sprite is not None else 0
+
+    @property
+    def height(self):
+        return self.sprite.height if self.sprite is not None else 0
+
+    @property
+    def x(self):
+        return self.position.x
+
+    @property
+    def y(self):
+        return self.position.y
+
     def __eq__(self, other):
         return self.guid == other.guid
 
