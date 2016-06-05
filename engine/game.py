@@ -1,18 +1,13 @@
-from typing import TypeVar, List
+from typing import List, Union
 
 import pyglet
 
-import engine.entity as entity
+import engine.entity
 import engine.event_handlers as handlers
 import engine.events
 import engine.physics
 import engine.spatial
 import engine.time
-
-
-AnyEntity = TypeVar("AnyEntity", entity.Entity, entity.EntityModel)
-EntityID = TypeVar("EntityID", entity.Entity, entity.GUID)
-ModelID = TypeVar("ModelID", entity.EntityModel, str)
 
 
 class Game:
@@ -24,15 +19,15 @@ class Game:
     steps_per_second = 60
 
     @classmethod
-    def add_entity(cls, ent: AnyEntity, position: engine.spatial.Position=None) -> None:
-        if isinstance(ent, entity.Entity):
+    def add_entity(cls, ent: Union[engine.entity.Entity, engine.entity.EntityModel], position: engine.spatial.Position=None) -> None:
+        if isinstance(ent, engine.entity.Entity):
             if ent.guid not in cls.__entities:
                 if position is not None:
                     ent.position = position
 
                 cls.__entities[ent.guid] = ent
-        elif isinstance(ent, entity.EntityModel):
-            ent = entity.Entity(model=ent, position=position)
+        elif isinstance(ent, engine.entity.EntityModel):
+            ent = engine.entity.Entity(model=ent, position=position)
             cls.__entities[ent.guid] = ent
         else:
             return
@@ -40,22 +35,22 @@ class Game:
         engine.events.EventManager.raise_event(engine.events.CreateEvent(ent, position))
 
     @classmethod
-    def remove_entity(cls, ent: EntityID) -> None:
-        if isinstance(ent, entity.Entity):
+    def remove_entity(cls, ent: Union[engine.entity.Entity, engine.entity.GUID]) -> None:
+        if isinstance(ent, engine.entity.Entity):
             del cls.__entities[ent.guid]
-        elif isinstance(ent, entity.GUID):
+        elif isinstance(ent, engine.entity.GUID):
             del cls.__entities[ent]
 
     @classmethod
-    def get_entity(cls, ent: EntityID) -> entity.Entity:
-        if isinstance(ent, entity.Entity):
+    def get_entity(cls, ent: Union[engine.entity.Entity, engine.entity.GUID]) -> engine.entity.Entity:
+        if isinstance(ent, engine.entity.Entity):
             return cls.__entities.get(ent.guid)
-        elif isinstance(ent, entity.GUID):
+        elif isinstance(ent, engine.entity.GUID):
             return cls.__entities.get(ent)
 
     @classmethod
-    def get_entities(cls, model: ModelID) -> List[entity.Entity]:
-        if isinstance(model, entity.EntityModel):
+    def get_entities(cls, model: Union[engine.entity.EntityModel, str]) -> List[engine.entity.Entity]:
+        if isinstance(model, engine.entity.EntityModel):
             name = model.name
         elif isinstance(model, str):
             name = model
@@ -99,9 +94,6 @@ class Game:
 
         engine.time.GlobalTimeline.step()
 
-        for e in cls.__entities.values():
-            engine.events.EventManager.raise_event(engine.events.StepEvent(e))
-
         cls._detect_collisions()
 
         engine.events.EventManager.handle_all()
@@ -118,3 +110,17 @@ class Game:
         engine.events.EventManager.handle_all()
 
         # handle input
+
+    @classmethod
+    @__window.event
+    def on_key_press(symbol, modifiers):
+        for ent in Game.__entities:
+            engine.events.EventManager.raise_event(engine.events.InputEvent(ent, engine.events.InputType.KEY_DOWN,
+                                                                            symbol))
+
+    @classmethod
+    @__window.event
+    def on_key_release(symbol, modifiers):
+        for ent in Game.__entities:
+            engine.events.EventManager.raise_event(engine.events.InputEvent(ent, engine.events.InputType.KEY_UP,
+                                                                            symbol))

@@ -2,8 +2,9 @@ from typing import Callable
 
 import pyglet
 
-import engine.spatial
 import engine.events
+import engine.spatial
+import engine.time
 
 
 class GUID:
@@ -31,7 +32,7 @@ class GUID:
 
 class EntityModel:
     def __init__(self, name: str, solid: bool = False, sprite: pyglet.sprite.Sprite = None, visible: bool = True,
-                 parents=None, variables: dict=None):
+                 parents=None, variables: dict=None, timeline=engine.time.GlobalTimeline):
         self.name, self.solid, self.sprite, self.visible = name, solid, sprite, visible
         self.create_script = self.destroy_script = self.step_script = self.draw_script = None
         self.collision_script = {}
@@ -40,6 +41,7 @@ class EntityModel:
                              engine.events.InputType.MOUSE_MOVE: None}
         self.variables = variables if variables is not None else {}
         self.parents = set(parents) if parents is not None else set()
+        self.timeline = timeline
 
         for parent in self.parents:
             parent.inherit(self)
@@ -82,7 +84,8 @@ class EntityModel:
 
 class Entity:
     def __init__(self, model: EntityModel = None, name: str = None, position: engine.spatial.Position = None,
-                 solid: bool = False, sprite: pyglet.sprite.Sprite = None, visible: bool=True):
+                 solid: bool = False, sprite: pyglet.sprite.Sprite = None, visible: bool=True,
+                 timeline=engine.time.GlobalTimeline):
         self.guid = GUID()
 
         if position is None:
@@ -96,7 +99,7 @@ class Entity:
                 self.input_script = model.create_script, model.destroy_script, model.step_script, model.draw_script, \
                 model.collision_script, model.input_script
 
-            self.variables, self.parents = model.variables, model.parents
+            self.variables, self.parents, self.timeline = model.variables, model.parents, model.timeline
         else:
             self.name, self.position, self.solid, self.sprite, self.visible = name, position, solid, sprite, visible
 
@@ -109,24 +112,27 @@ class Entity:
 
             self.variables = {}
             self.parents = set()
+            self.timeline = timeline
+
+        self.timeline.register(self)
 
     def destroy(self) -> None:
         engine.events.EventManager.raise_event(engine.events.DestroyEvent(self))
 
     @property
-    def width(self):
+    def width(self) -> float:
         return self.sprite.width if self.sprite is not None else 0
 
     @property
-    def height(self):
+    def height(self) -> float:
         return self.sprite.height if self.sprite is not None else 0
 
     @property
-    def x(self):
+    def x(self) -> float:
         return self.position.x
 
     @property
-    def y(self):
+    def y(self) -> float:
         return self.position.y
 
     def __eq__(self, other):
