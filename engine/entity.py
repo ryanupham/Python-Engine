@@ -79,9 +79,6 @@ class EntityModel:
                 child.input_script[in_type] = child.input_script[in_type] if child.input_script[in_type] is not None \
                     else self.input_script[in_type]
 
-    def destroy(self) -> None:
-        pass
-
 
 class Entity:
     def __init__(self, model: EntityModel = None, name: str = None, position: engine.spatial.Position = None,
@@ -112,6 +109,9 @@ class Entity:
 
             self.variables = {}
             self.parents = set()
+
+    def destroy(self) -> None:
+        engine.events.EventManager.raise_event(engine.events.DestroyEvent(self))
 
     def __eq__(self, other):
         return self.guid == other.guid

@@ -10,7 +10,7 @@ def create_event_handler(event: engine.events.CreateEvent) -> None:
     event.entity.position = event.position
 
     if event.entity.create_script is not None:
-        event.entity.create_script()
+        event.entity.create_script(event.entity)
 
 
 def destroy_event_handler(event: engine.events.DestroyEvent) -> None:
@@ -18,19 +18,18 @@ def destroy_event_handler(event: engine.events.DestroyEvent) -> None:
 
     if event.entity is not None:
         if event.entity.destroy_script is not None:
-            event.entity.destroy_script()
+            event.entity.destroy_script(event.entity)
 
         engine.game.Game.remove_entity(event.entity)
 
 
 def collision_event_handler(event: engine.events.CollisionEvent) -> None:
-    print("COLLISION!!!!!!1111")
     event.entity = engine.game.Game.get_entity(event.entity)
     event.other = engine.game.Game.get_entity(event.other)
 
     if event.entity is not None and event.other is not None:
         if event.entity.collision_script.get(event.other.name) is not None:
-            event.entity.collision_script[event.other.name](event.other)
+            event.entity.collision_script[event.other.name](event.entity, event.other)
 
 
 def step_event_handler(event: engine.events.StepEvent) -> None:
@@ -38,7 +37,7 @@ def step_event_handler(event: engine.events.StepEvent) -> None:
 
     if event.entity is not None:
         if event.entity.step_script is not None:
-            event.entity.step_script()
+            event.entity.step_script(event.entity)
 
         event.entity.position.step()
 
@@ -48,7 +47,7 @@ def draw_event_handler(event: engine.events.DrawEvent) -> None:
 
     if event.entity is not None:
         if event.entity.draw_script is not None:
-            event.entity.draw_script()
+            event.entity.draw_script(event.entity)
         elif event.entity.visible:
             if event.entity.sprite is not None:
                 event.entity.sprite.x, event.entity.sprite.y = event.entity.position.x, event.entity.position.y
@@ -62,7 +61,7 @@ def input_event_handler(event: engine.events.InputEvent) -> None:
         if event.input_type in event.entity.input_script:
             if isinstance(event.entity.input_script[event.input_type], dict):
                 if event.entity.input_script[event.input_type].get(event.data) is not None:
-                    event.entity.input_script[event.input_type][event.data]()
+                    event.entity.input_script[event.input_type][event.data](event.entity)
             else:
                 if event.entity.input_script.get(event.input_type) is not None:
-                    event.entity.input_script[event.input_type]()
+                    event.entity.input_script[event.input_type](event.entity)

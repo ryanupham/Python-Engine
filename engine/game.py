@@ -94,18 +94,16 @@ class Game:
         if not cls.__running:
             return
 
-        while not engine.events.EventManager.empty():
-            engine.events.EventManager.handle_all()
-            cls._detect_collisions()
+        engine.events.EventManager.handle_all()
 
         engine.time.GlobalTimeline.step()
 
         for e in cls.__entities.values():
             engine.events.EventManager.raise_event(engine.events.StepEvent(e))
 
-        while not engine.events.EventManager.empty():
-            engine.events.EventManager.handle_all()
-            cls._detect_collisions()
+        cls._detect_collisions()
+
+        engine.events.EventManager.handle_all()
 
         engine.events.EventManager.begin_draw()
         cls.__window.clear()
@@ -115,8 +113,6 @@ class Game:
 
         engine.events.EventManager.end_draw()
 
-        while not engine.events.EventManager.empty():
-            engine.events.EventManager.handle_all()
-            cls._detect_collisions()
+        engine.events.EventManager.handle_all()
 
         # handle input
