@@ -24,11 +24,12 @@ def destroy_event_handler(event: engine.events.DestroyEvent) -> None:
 
 
 def collision_event_handler(event: engine.events.CollisionEvent) -> None:
+    print("COLLISION!!!!!!1111")
     event.entity = engine.game.Game.get_entity(event.entity)
     event.other = engine.game.Game.get_entity(event.other)
 
     if event.entity is not None and event.other is not None:
-        if event.entity.collision_script[event.other.name] is not None:
+        if event.entity.collision_script.get(event.other.name) is not None:
             event.entity.collision_script[event.other.name](event.other)
 
 
@@ -60,8 +61,8 @@ def input_event_handler(event: engine.events.InputEvent) -> None:
     if event.entity is not None:
         if event.input_type in event.entity.input_script:
             if isinstance(event.entity.input_script[event.input_type], dict):
-                if event.entity.input_script[event.input_type][event.data] is not None:
+                if event.entity.input_script[event.input_type].get(event.data) is not None:
                     event.entity.input_script[event.input_type][event.data]()
             else:
-                if event.entity.input_script[event.input_type] is not None:
+                if event.entity.input_script.get(event.input_type) is not None:
                     event.entity.input_script[event.input_type]()

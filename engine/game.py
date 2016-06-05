@@ -5,6 +5,7 @@ import pyglet
 import engine.entity as entity
 import engine.event_handlers as handlers
 import engine.events
+import engine.physics
 import engine.spatial
 import engine.time
 
@@ -83,13 +84,19 @@ class Game:
         pyglet.app.run()
 
     @classmethod
+    def _detect_collisions(cls):
+        for collision in engine.physics.find_collisions(cls.__entities.values()):
+            engine.events.EventManager.raise_event(engine.events.CollisionEvent(collision[0], collision[1]))
+            engine.events.EventManager.raise_event(engine.events.CollisionEvent(collision[1], collision[0]))
+
+    @classmethod
     def __main(cls, dt) -> None:
         if not cls.__running:
             return
 
         while not engine.events.EventManager.empty():
             engine.events.EventManager.handle_all()
-            # detect collisions
+            cls._detect_collisions()
 
         engine.time.GlobalTimeline.step()
 
@@ -98,7 +105,7 @@ class Game:
 
         while not engine.events.EventManager.empty():
             engine.events.EventManager.handle_all()
-            # detect collisions
+            cls._detect_collisions()
 
         engine.events.EventManager.begin_draw()
         cls.__window.clear()
@@ -110,6 +117,6 @@ class Game:
 
         while not engine.events.EventManager.empty():
             engine.events.EventManager.handle_all()
-            # detect collisions
+            cls._detect_collisions()
 
         # handle input
