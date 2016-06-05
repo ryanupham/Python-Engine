@@ -8,8 +8,6 @@ def create_event_handler(event):
 
     event.entity.position = event.position
 
-    engine.game.Game.add_entity(event.entity)
-
     if event.entity.create_script is not None:
         event.entity.create_script()
 

@@ -88,8 +88,19 @@ class Entity:
         if model is not None:
             self.name, self.position, self.solid, self.sprite, self.visible = model.name, position, model.solid, \
                 model.sprite, model.visible
+
+            self.create_script, self.destroy_script, self.step_script, self.draw_script, self.collision_script, \
+                self.input_script = model.create_script, model.destroy_script, model.step_script, model.draw_script, \
+                model.collision_script, model.input_script
+
+            self.variables, self.parents = model.variables, model.parents
         else:
             self.name, self.position, self.solid, self.sprite, self.visible = name, position, solid, sprite, visible
+
+            self.create_script = self.destroy_script = self.step_script = self.draw_script = self.collision_script = \
+                self.input_script = None
+
+            self.variables = self.parents = None
 
     def __eq__(self, other):
         return self.guid == other.guid

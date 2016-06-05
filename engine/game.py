@@ -1,8 +1,8 @@
 import pyglet
 
-import engine.event_handling as handlers
+import engine.event_handlers as handlers
 import engine.entity as entity
-from engine.events import EventManager, EventType, StepEvent, DrawEvent
+import engine.events
 from engine.time import GlobalTimeline
 
 
@@ -24,6 +24,10 @@ class Game:
         elif isinstance(ent, entity.EntityModel):
             ent = entity.Entity(model=ent, position=position)
             cls.__entities[ent.guid] = ent
+        else:
+            return
+
+        engine.events.EventManager.raise_event(engine.events.CreateEvent(ent, position))
 
     @classmethod
     def remove_entity(cls, ent):
@@ -52,12 +56,12 @@ class Game:
 
     @classmethod
     def initialize(cls, width=800, height=600):
-        EventManager.register_handler(EventType.CREATE, handlers.create_event_handler)
-        EventManager.register_handler(EventType.DESTROY, handlers.destroy_event_handler)
-        EventManager.register_handler(EventType.COLLISION, handlers.collision_event_handler)
-        EventManager.register_handler(EventType.STEP, handlers.step_event_handler)
-        EventManager.register_handler(EventType.DRAW, handlers.draw_event_handler)
-        EventManager.register_handler(EventType.INPUT, handlers.input_event_handler)
+        engine.events.EventManager.register_handler(engine.events.CreateEvent, handlers.create_event_handler)
+        engine.events.EventManager.register_handler(engine.events.DestroyEvent, handlers.destroy_event_handler)
+        engine.events.EventManager.register_handler(engine.events.CollisionEvent, handlers.collision_event_handler)
+        engine.events.EventManager.register_handler(engine.events.StepEvent, handlers.step_event_handler)
+        engine.events.EventManager.register_handler(engine.events.DrawEvent, handlers.draw_event_handler)
+        engine.events.EventManager.register_handler(engine.events.InputEvent, handlers.input_event_handler)
 
         cls.__window.width = width
         cls.__window.height = height
@@ -75,29 +79,29 @@ class Game:
         if not cls.__running:
             return
 
-        while not EventManager.empty():
-            EventManager.handle_all()
+        while not engine.events.EventManager.empty():
+            engine.events.EventManager.handle_all()
             # detect collisions
 
         GlobalTimeline.step()
 
         for e in cls.__entities.values():
-            EventManager.raise_event(StepEvent(e))
+            engine.events.EventManager.raise_event(engine.events.StepEvent(e))
 
-        while not EventManager.empty():
-            EventManager.handle_all()
+        while not engine.events.EventManager.empty():
+            engine.events.EventManager.handle_all()
             # detect collisions
 
-        EventManager.begin_draw()
+        engine.events.EventManager.begin_draw()
         cls.__window.clear()
 
         for e in cls.__entities.values():
-            EventManager.raise_event(DrawEvent(e))
+            engine.events.EventManager.raise_event(engine.events.DrawEvent(e))
 
-        EventManager.end_draw()
+        engine.events.EventManager.end_draw()
 
-        while not EventManager.empty():
-            EventManager.handle_all()
+        while not engine.events.EventManager.empty():
+            engine.events.EventManager.handle_all()
             # detect collisions
 
         # handle input
