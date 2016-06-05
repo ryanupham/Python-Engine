@@ -21,8 +21,8 @@ def find_collisions(entities: Iterable[engine.entity.Entity]) -> List[List[engin
             e1p = e1.position
             e2p = e2.position
 
-            if rectangles_intersect((e1p.x, e1p.y, e1p.x + e1.sprite.width, e1p.y + e1.sprite.height),
-                                    (e2p.x, e2p.y, e2p.x + e2.sprite.width, e2p.y + e2.sprite.height)):
+            if rectangles_intersect((e1p.x, e1p.y, e1p.x + e1.sprite.width - 1, e1p.y + e1.sprite.height - 1),
+                                    (e2p.x, e2p.y, e2p.x + e2.sprite.width - 1, e2p.y + e2.sprite.height - 1)):
                 collisions.append([e1, e2])
 
     return collisions

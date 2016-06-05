@@ -17,9 +17,10 @@ ModelID = TypeVar("ModelID", entity.EntityModel, str)
 
 class Game:
     __entities = {}
-    __window = pyglet.window.Window()
+    __window = pyglet.window.Window(width=1280, height=768)
     __window.set_visible(False)
     __running = False
+    __bg_color = (0, 0, 0)
     steps_per_second = 60
 
     @classmethod
@@ -64,7 +65,7 @@ class Game:
         return [e for e in cls.__entities if e.name == name]
 
     @classmethod
-    def initialize(cls, width: int=800, height: int=600) -> None:
+    def initialize(cls, width: int=800, height: int=600, background_color=(0, 0, 0)) -> None:
         engine.events.EventManager.register_handler(engine.events.CreateEvent, handlers.create_event_handler)
         engine.events.EventManager.register_handler(engine.events.DestroyEvent, handlers.destroy_event_handler)
         engine.events.EventManager.register_handler(engine.events.CollisionEvent, handlers.collision_event_handler)
@@ -72,8 +73,8 @@ class Game:
         engine.events.EventManager.register_handler(engine.events.DrawEvent, handlers.draw_event_handler)
         engine.events.EventManager.register_handler(engine.events.InputEvent, handlers.input_event_handler)
 
-        cls.__window.width = width
-        cls.__window.height = height
+        cls.__bg_color = background_color
+        cls.__window.set_size(width, height)
 
     @classmethod
     def start(cls) -> None:
@@ -107,6 +108,7 @@ class Game:
 
         engine.events.EventManager.begin_draw()
         cls.__window.clear()
+        pyglet.gl.glClearColor(cls.__bg_color[0], cls.__bg_color[1], cls.__bg_color[2], 1)
 
         for e in cls.__entities.values():
             engine.events.EventManager.raise_event(engine.events.DrawEvent(e))
