@@ -76,7 +76,7 @@ class EventManager:
 
     @classmethod
     def raise_event(cls, event):
-        if not cls.__drawing:
+        if cls.__drawing == isinstance(event, DrawEvent):
             cls.__queue.put(event)
 
     @classmethod

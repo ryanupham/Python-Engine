@@ -46,7 +46,9 @@ def draw_event_handler(event):
         if event.entity.draw_script is not None:
             event.entity.draw_script()
         elif event.entity.visible:
-            pass  # TODO: drawing
+            if event.entity.sprite is not None:
+                event.entity.sprite.x, event.entity.sprite.y = event.entity.position.x, event.entity.position.y
+                event.entity.sprite.draw()
 
 
 def input_event_handler(event):
