@@ -1,10 +1,11 @@
+import engine.events
 import engine.game
-from engine.spatial import Position
+import engine.spatial
 
 
-def create_event_handler(event):
+def create_event_handler(event: engine.events.CreateEvent) -> None:
     if event.position is None:
-        event.position = Position()
+        event.position = engine.spatial.Position()
 
     event.entity.position = event.position
 
@@ -12,7 +13,7 @@ def create_event_handler(event):
         event.entity.create_script()
 
 
-def destroy_event_handler(event):
+def destroy_event_handler(event: engine.events.DestroyEvent) -> None:
     event.entity = engine.game.Game.get_entity(event.entity)
 
     if event.entity is not None:
@@ -22,7 +23,7 @@ def destroy_event_handler(event):
         engine.game.Game.remove_entity(event.entity)
 
 
-def collision_event_handler(event):
+def collision_event_handler(event: engine.events.CollisionEvent) -> None:
     event.entity = engine.game.Game.get_entity(event.entity)
     event.other = engine.game.Game.get_entity(event.other)
 
@@ -31,15 +32,17 @@ def collision_event_handler(event):
             event.entity.collision_script[event.other.name](event.other)
 
 
-def step_event_handler(event):
+def step_event_handler(event: engine.events.StepEvent) -> None:
     event.entity = engine.game.Game.get_entity(event.entity)
 
     if event.entity is not None:
         if event.entity.step_script is not None:
             event.entity.step_script()
 
+        event.entity.position.step()
 
-def draw_event_handler(event):
+
+def draw_event_handler(event: engine.events.DrawEvent) -> None:
     event.entity = engine.game.Game.get_entity(event.entity)
 
     if event.entity is not None:
@@ -51,7 +54,7 @@ def draw_event_handler(event):
                 event.entity.sprite.draw()
 
 
-def input_event_handler(event):
+def input_event_handler(event: engine.events.InputEvent) -> None:
     event.entity = engine.game.Game.get_entity(event.entity)
 
     if event.entity is not None:

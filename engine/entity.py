@@ -1,6 +1,9 @@
-import engine.spatial as spatial
-from engine.events import InputType
-from engine.spatial import Position
+from typing import Callable
+
+import pyglet
+
+import engine.spatial
+import engine.events
 
 
 class GUID:
@@ -27,40 +30,42 @@ class GUID:
 
 
 class EntityModel:
-    def __init__(self, name, solid=False, sprite=None, visible=True, parents=None, variables=None):
+    def __init__(self, name: str, solid: bool = False, sprite: pyglet.sprite.Sprite = None, visible: bool = True,
+                 parents=None, variables: dict=None):
         self.name, self.solid, self.sprite, self.visible = name, solid, sprite, visible
         self.create_script = self.destroy_script = self.step_script = self.draw_script = None
         self.collision_script = {}
-        self.input_script = {InputType.KEY_DOWN: {}, InputType.KEY_UP: {}, InputType.MOUSE_DOWN: {},
-                             InputType.MOUSE_UP: {}, InputType.MOUSE_MOVE: None}
+        self.input_script = {engine.events.InputType.KEY_DOWN: {}, engine.events.InputType.KEY_UP: {},
+                             engine.events.InputType.MOUSE_DOWN: {}, engine.events.InputType.MOUSE_UP: {},
+                             engine.events.InputType.MOUSE_MOVE: None}
         self.variables = variables if variables is not None else {}
         self.parents = set(parents) if parents is not None else set()
 
         for parent in self.parents:
             parent.inherit(self)
 
-    def add_create_script(self, fn):
+    def add_create_script(self, fn: Callable) -> None:
         self.create_script = fn
 
-    def add_destroy_script(self, fn):
+    def add_destroy_script(self, fn: Callable) -> None:
         self.destroy_script = fn
 
-    def add_collision_script(self, fn, other_name):
+    def add_collision_script(self, fn, other_name: str) -> None:
         self.collision_script[other_name] = fn
 
-    def add_step_script(self, fn):
+    def add_step_script(self, fn: Callable) -> None:
         self.step_script = fn
 
-    def add_draw_script(self, fn):
+    def add_draw_script(self, fn: Callable) -> None:
         self.draw_script = fn
 
-    def add_input_script(self, fn, input_type, match=None):
-        if input_type == InputType.MOUSE_MOVE:
+    def add_input_script(self, fn: Callable, input_type: int, match: int = None) -> None:
+        if input_type == engine.events.InputType.MOUSE_MOVE:
             self.input_script[input_type] = fn
         else:
             self.input_script[input_type][match] = fn
 
-    def inherit(self, child):
+    def inherit(self, child) -> None:
         child.variables = dict(self.variables, **child.variables)
         child.collision_script = dict(self.collision_script, **child.collision_script)
         child.create_script = child.create_script if child.create_script is not None else self.create_script
@@ -74,20 +79,21 @@ class EntityModel:
                 child.input_script[in_type] = child.input_script[in_type] if child.input_script[in_type] is not None \
                     else self.input_script[in_type]
 
-    def destroy(self):
+    def destroy(self) -> None:
         pass
 
 
 class Entity:
-    def __init__(self, model=None, name=None, position=None, solid=False, sprite=None, visible=True):
+    def __init__(self, model: EntityModel = None, name: str = None, position: engine.spatial.Position = None,
+                 solid: bool = False, sprite: pyglet.sprite.Sprite = None, visible: bool=True):
         self.guid = GUID()
 
         if position is None:
-            position = Position()
+            position = engine.spatial.Position()
 
         if model is not None:
             self.name, self.position, self.solid, self.sprite, self.visible = model.name, position, model.solid, \
-                model.sprite, model.visible
+                                                                              model.sprite, model.visible
 
             self.create_script, self.destroy_script, self.step_script, self.draw_script, self.collision_script, \
                 self.input_script = model.create_script, model.destroy_script, model.step_script, model.draw_script, \
@@ -99,18 +105,16 @@ class Entity:
 
             self.create_script = self.destroy_script = self.step_script = self.draw_script = self.collision_script = \
                 self.input_script = None
+            self.collision_script = {}
+            self.input_script = {engine.events.InputType.KEY_DOWN: {}, engine.events.InputType.KEY_UP: {},
+                                 engine.events.InputType.MOUSE_DOWN: {}, engine.events.InputType.MOUSE_UP: {},
+                                 engine.events.InputType.MOUSE_MOVE: None}
 
-            self.variables = self.parents = None
+            self.variables = {}
+            self.parents = set()
 
     def __eq__(self, other):
         return self.guid == other.guid
 
     def __ne__(self, other):
         return not self.__eq__(other)
-
-    def draw(self):
-        if self.visible and self.sprite is not None:
-            pass  # TODO: draw self
-
-    def move(self):
-        self.position.step()

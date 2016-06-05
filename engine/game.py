@@ -1,9 +1,17 @@
+from typing import TypeVar, List
+
 import pyglet
 
-import engine.event_handlers as handlers
 import engine.entity as entity
+import engine.event_handlers as handlers
 import engine.events
-from engine.time import GlobalTimeline
+import engine.spatial
+import engine.time
+
+
+AnyEntity = TypeVar("AnyEntity", entity.Entity, entity.EntityModel)
+EntityID = TypeVar("EntityID", entity.Entity, entity.GUID)
+ModelID = TypeVar("ModelID", entity.EntityModel, str)
 
 
 class Game:
@@ -14,7 +22,7 @@ class Game:
     steps_per_second = 60
 
     @classmethod
-    def add_entity(cls, ent, position=None):
+    def add_entity(cls, ent: AnyEntity, position: engine.spatial.Position=None) -> None:
         if isinstance(ent, entity.Entity):
             if ent.guid not in cls.__entities:
                 if position is not None:
@@ -30,21 +38,21 @@ class Game:
         engine.events.EventManager.raise_event(engine.events.CreateEvent(ent, position))
 
     @classmethod
-    def remove_entity(cls, ent):
+    def remove_entity(cls, ent: EntityID) -> None:
         if isinstance(ent, entity.Entity):
             del cls.__entities[ent.guid]
         elif isinstance(ent, entity.GUID):
             del cls.__entities[ent]
 
     @classmethod
-    def get_entity(cls, ent):
+    def get_entity(cls, ent: EntityID) -> entity.Entity:
         if isinstance(ent, entity.Entity):
             return cls.__entities.get(ent.guid)
         elif isinstance(ent, entity.GUID):
             return cls.__entities.get(ent)
 
     @classmethod
-    def get_entities(cls, model):
+    def get_entities(cls, model: ModelID) -> List[entity.Entity]:
         if isinstance(model, entity.EntityModel):
             name = model.name
         elif isinstance(model, str):
@@ -55,7 +63,7 @@ class Game:
         return [e for e in cls.__entities if e.name == name]
 
     @classmethod
-    def initialize(cls, width=800, height=600):
+    def initialize(cls, width: int=800, height: int=600) -> None:
         engine.events.EventManager.register_handler(engine.events.CreateEvent, handlers.create_event_handler)
         engine.events.EventManager.register_handler(engine.events.DestroyEvent, handlers.destroy_event_handler)
         engine.events.EventManager.register_handler(engine.events.CollisionEvent, handlers.collision_event_handler)
@@ -67,7 +75,7 @@ class Game:
         cls.__window.height = height
 
     @classmethod
-    def start(cls):
+    def start(cls) -> None:
         cls.__window.set_visible(True)
         cls.__running = True
 
@@ -75,7 +83,7 @@ class Game:
         pyglet.app.run()
 
     @classmethod
-    def __main(cls, dt):
+    def __main(cls, dt) -> None:
         if not cls.__running:
             return
 
@@ -83,7 +91,7 @@ class Game:
             engine.events.EventManager.handle_all()
             # detect collisions
 
-        GlobalTimeline.step()
+        engine.time.GlobalTimeline.step()
 
         for e in cls.__entities.values():
             engine.events.EventManager.raise_event(engine.events.StepEvent(e))
@@ -105,7 +113,3 @@ class Game:
             # detect collisions
 
         # handle input
-
-    @classmethod
-    def get_instance(cls):
-        return cls
