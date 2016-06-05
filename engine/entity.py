@@ -22,6 +22,9 @@ class GUID:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return self.__id
+
 
 class EntityModel:
     def __init__(self, name, solid=False, sprite=None, visible=True, parents=None, variables=None):
@@ -33,7 +36,7 @@ class EntityModel:
         self.variables = variables if variables is not None else {}
         self.parents = set(parents) if parents is not None else set()
 
-        for parent in parents:
+        for parent in self.parents:
             parent.inherit(self)
 
     def add_create_script(self, fn):

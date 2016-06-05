@@ -15,28 +15,28 @@ class Game:
 
     @classmethod
     def add_entity(cls, ent, position=None):
-        if isinstance(ent, ent.Entity):
+        if isinstance(ent, entity.Entity):
             if ent.guid not in cls.__entities:
                 if position is not None:
                     ent.position = position
 
                 cls.__entities[ent.guid] = ent
-        elif isinstance(ent, ent.EntityModel):
-            ent = ent.Entity(model=ent, position=position)
+        elif isinstance(ent, entity.EntityModel):
+            ent = entity.Entity(model=ent, position=position)
             cls.__entities[ent.guid] = ent
 
     @classmethod
     def remove_entity(cls, ent):
-        if isinstance(ent, ent.Entity):
+        if isinstance(ent, entity.Entity):
             del cls.__entities[ent.guid]
-        elif isinstance(ent, ent.GUID):
+        elif isinstance(ent, entity.GUID):
             del cls.__entities[ent]
 
     @classmethod
     def get_entity(cls, ent):
-        if isinstance(ent, ent.Entity):
+        if isinstance(ent, entity.Entity):
             return cls.__entities.get(ent.guid)
-        elif isinstance(ent, ent.GUID):
+        elif isinstance(ent, entity.GUID):
             return cls.__entities.get(ent)
 
     @classmethod
@@ -64,16 +64,14 @@ class Game:
 
     @classmethod
     def start(cls):
-
         cls.__window.set_visible(True)
         cls.__running = True
+
+        pyglet.clock.schedule_interval(cls.__main, 1/cls.steps_per_second)
         pyglet.app.run()
 
-    @__window.event
-    def on_draw(cls=None):
-        if cls is None:
-            cls = Game.get_instance()
-
+    @classmethod
+    def __main(cls, dt):
         if not cls.__running:
             return
 
@@ -98,8 +96,11 @@ class Game:
 
         EventManager.end_draw()
 
+        while not EventManager.empty():
+            EventManager.handle_all()
+            # detect collisions
+
         # handle input
-        print("test")
 
     @classmethod
     def get_instance(cls):
